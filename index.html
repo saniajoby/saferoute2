@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeRoute AI — Navigate with Confidence</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c14;
+    --surface: #0d1421;
+    --card: #111827;
+    --border: #1e2d45;
+    --accent: #00e5ff;
+    --accent2: #7c3aed;
+    --safe: #10b981;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --glow: 0 0 20px rgba(0,229,255,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 2.5rem;
+    background: rgba(8,12,20,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em;
+    color: var(--accent); text-shadow: var(--glow);
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .logo span { color: var(--text); }
+  .nav-links { display: flex; gap: 2rem; }
+  .nav-links a {
+    color: var(--muted); text-decoration: none; font-size: 0.85rem;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+  .nav-cta {
+    background: var(--accent); color: #000;
+    border: none; padding: 0.55rem 1.4rem;
+    border-radius: 4px; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 0.85rem; letter-spacing: 0.05em;
+    text-transform: uppercase; transition: all 0.2s;
+  }
+  .nav-cta:hover { background: #fff; box-shadow: var(--glow); }
+
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 8rem 2rem 4rem;
+    position: relative; z-index: 1;
+  }
+  .hero-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 0.15em;
+    color: var(--accent); border: 1px solid rgba(0,229,255,0.3);
+    padding: 0.4rem 1rem; border-radius: 100px;
+    margin-bottom: 2rem; text-transform: uppercase;
+    animation: pulse-border 2s ease-in-out infinite;
+  }
+  @keyframes pulse-border {
+    0%,100% { border-color: rgba(0,229,255,0.3); }
+    50% { border-color: rgba(0,229,255,0.8); box-shadow: 0 0 15px rgba(0,229,255,0.2); }
+  }
+  .hero h1 {
+    font-size: clamp(3rem, 8vw, 6rem); font-weight: 800;
+    text-align: center; line-height: 1.05; letter-spacing: -0.03em;
+    max-width: 900px;
+  }
+  .hero h1 .highlight {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    margin-top: 1.5rem; font-size: 1.1rem; color: var(--muted);
+    text-align: center; max-width: 550px; line-height: 1.6;
+  }
+  .hero-actions {
+    margin-top: 2.5rem; display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
+  }
+  .btn-primary {
+    background: var(--accent); color: #000;
+    border: none; padding: 0.9rem 2rem;
+    border-radius: 6px; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 1rem; transition: all 0.2s;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0,229,255,0.4); }
+  .btn-secondary {
+    background: transparent; color: var(--text);
+    border: 1px solid var(--border); padding: 0.9rem 2rem;
+    border-radius: 6px; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-weight: 600;
+    font-size: 1rem; transition: all 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  .app-section {
+    position: relative; z-index: 1;
+    padding: 2rem;
+    max-width: 1400px; margin: 0 auto;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem; color: var(--accent);
+    letter-spacing: 0.15em; text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .section-title {
+    font-size: 2.2rem; font-weight: 800;
+    letter-spacing: -0.02em; margin-bottom: 0.5rem;
+  }
+  .section-sub {
+    color: var(--muted); font-size: 1rem; margin-bottom: 2.5rem;
+  }
+
+  .map-interface {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+  }
+
+  .card-title {
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 1rem;
+  }
+
+  .search-group { display: flex; flex-direction: column; gap: 0.75rem; }
+  .input-wrap { position: relative; }
+  .input-wrap .icon {
+    position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%);
+    font-size: 0.9rem;
+  }
+  .input-wrap input {
+    width: 100%; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 0.7rem 0.75rem 0.7rem 2.25rem;
+    color: var(--text); font-family: 'Syne', sans-serif; font-size: 0.9rem;
+    transition: border-color 0.2s; outline: none;
+  }
+  .input-wrap input:focus { border-color: var(--accent); }
+  .input-wrap input::placeholder { color: var(--muted); }
+  .find-btn {
+    background: linear-gradient(135deg, var(--accent), #0099cc);
+    border: none; border-radius: 8px; padding: 0.75rem;
+    color: #000; font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 0.9rem; cursor: pointer;
+    transition: all 0.2s; letter-spacing: 0.05em;
+  }
+  .find-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  .time-control { display: flex; flex-direction: column; gap: 0.5rem; }
+  .time-display { display: flex; justify-content: space-between; align-items: center; }
+  .time-val { font-family: 'Space Mono', monospace; font-size: 1.1rem; color: var(--accent); }
+  .time-note { font-size: 0.75rem; color: var(--warn); }
+  input[type=range] {
+    width: 100%; -webkit-appearance: none;
+    height: 4px; background: var(--border); border-radius: 4px; outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 16px; height: 16px;
+    background: var(--accent); border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0,229,255,0.5);
+  }
+  .time-labels { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--muted); }
+
+  .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .filter-chip {
+    display: flex; align-items: center; gap: 0.4rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.5rem 0.75rem;
+    cursor: pointer; transition: all 0.2s; font-size: 0.8rem; user-select: none;
+  }
+  .filter-chip.active { border-color: var(--accent); background: rgba(0,229,255,0.08); color: var(--accent); }
+  .filter-chip:hover { border-color: var(--accent); }
+
+  .route-list { display: flex; flex-direction: column; gap: 0.75rem; }
+  .route-item {
+    background: var(--surface); border: 2px solid var(--border);
+    border-radius: 10px; padding: 0.9rem;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; gap: 0.75rem; align-items: flex-start;
+  }
+  .route-item.selected { border-color: var(--accent); background: rgba(0,229,255,0.06); }
+  .route-item:hover { border-color: var(--accent); }
+  .route-score {
+    min-width: 48px; height: 48px; border-radius: 8px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.1rem; line-height: 1;
+  }
+  .score-safe { background: rgba(16,185,129,0.15); color: var(--safe); }
+  .score-warn { background: rgba(245,158,11,0.15); color: var(--warn); }
+  .score-danger { background: rgba(239,68,68,0.15); color: var(--danger); }
+  .route-score span { font-size: 0.55rem; font-weight: 600; opacity: 0.7; margin-top: 2px; }
+  .route-info { flex: 1; }
+  .route-name { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .route-meta { font-size: 0.75rem; color: var(--muted); display: flex; gap: 0.75rem; }
+  .route-tags { display: flex; gap: 0.4rem; margin-top: 0.4rem; flex-wrap: wrap; }
+  .route-tag {
+    font-size: 0.65rem; padding: 0.15rem 0.5rem; border-radius: 100px;
+    background: rgba(255,255,255,0.05); color: var(--muted);
+  }
+
+  .map-area {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; position: relative;
+    min-height: 580px;
+  }
+  .map-canvas { width: 100%; height: 100%; position: relative; background: #0a1628; }
+  svg.map-svg { width: 100%; height: 100%; }
+
+  .map-overlay-top {
+    position: absolute; top: 1rem; left: 1rem; right: 1rem;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    pointer-events: none; z-index: 10;
+  }
+  .map-badge {
+    background: rgba(8,12,20,0.9); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.5rem 0.75rem;
+    font-size: 0.75rem; font-family: 'Space Mono', monospace;
+    color: var(--accent); pointer-events: all;
+  }
+  .map-legend {
+    background: rgba(8,12,20,0.9); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.6rem 0.75rem;
+    display: flex; flex-direction: column; gap: 0.3rem;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.7rem; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  .map-overlay-bottom {
+    position: absolute; bottom: 1rem; left: 1rem; right: 1rem;
+    display: flex; justify-content: space-between; z-index: 10;
+  }
+
+  .street-tooltip {
+    background: rgba(8,12,20,0.95); border: 1px solid var(--border);
+    border-radius: 10px; padding: 0.75rem 1rem;
+    font-size: 0.78rem; min-width: 180px;
+  }
+  .street-tooltip .st-name { font-weight: 700; margin-bottom: 0.5rem; }
+  .street-tooltip .st-row { display: flex; justify-content: space-between; margin: 0.25rem 0; }
+  .street-tooltip .st-val { font-family: 'Space Mono', monospace; }
+
+  .emergency-btn {
+    display: flex; align-items: center; gap: 0.75rem;
+    background: var(--danger); border: none; border-radius: 10px;
+    padding: 0.8rem 1.2rem; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 0.85rem; color: #fff; letter-spacing: 0.03em;
+    box-shadow: 0 0 20px rgba(239,68,68,0.4);
+    transition: all 0.2s; pointer-events: all;
+    animation: sos-pulse 2s ease-in-out infinite;
+  }
+  @keyframes sos-pulse {
+    0%,100% { box-shadow: 0 0 20px rgba(239,68,68,0.4); }
+    50% { box-shadow: 0 0 35px rgba(239,68,68,0.7); }
+  }
+  .emergency-btn:hover { transform: scale(1.03); }
+  .sos-icon { font-size: 1.2rem; }
+
+  .features-section {
+    position: relative; z-index: 1;
+    padding: 4rem 2rem;
+    max-width: 1400px; margin: 0 auto;
+  }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem; margin-top: 2.5rem;
+  }
+  .feature-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 1.75rem;
+    transition: all 0.3s; position: relative; overflow: hidden;
+  }
+  .feature-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .feature-card:hover { border-color: rgba(0,229,255,0.3); transform: translateY(-3px); }
+  .feature-card:hover::before { opacity: 1; }
+  .feature-icon {
+    width: 48px; height: 48px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; margin-bottom: 1rem;
+  }
+  .fi-blue { background: rgba(0,229,255,0.1); }
+  .fi-purple { background: rgba(124,58,237,0.1); }
+  .fi-green { background: rgba(16,185,129,0.1); }
+  .fi-yellow { background: rgba(245,158,11,0.1); }
+  .fi-red { background: rgba(239,68,68,0.1); }
+  .feature-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .feature-card p { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+  .ai-score-section {
+    position: relative; z-index: 1;
+    padding: 4rem 2rem;
+    max-width: 1400px; margin: 0 auto;
+  }
+  .ai-score-layout {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;
+  }
+  .score-visual { display: flex; flex-direction: column; gap: 1rem; }
+  .score-bar-row { display: flex; align-items: center; gap: 1rem; }
+  .score-bar-label { font-size: 0.8rem; min-width: 130px; color: var(--muted); }
+  .score-bar-track {
+    flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;
+  }
+  .score-bar-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+  .score-bar-val {
+    font-family: 'Space Mono', monospace; font-size: 0.8rem;
+    color: var(--accent); min-width: 35px; text-align: right;
+  }
+  .overall-score-display {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 2rem; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .overall-score-display::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at center, rgba(0,229,255,0.05), transparent 70%);
+  }
+  .big-score { font-size: 5rem; font-weight: 800; color: var(--safe); line-height: 1; }
+  .big-score-label { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 0.5rem; }
+  .score-grade {
+    display: inline-block; background: rgba(16,185,129,0.15);
+    color: var(--safe); border-radius: 6px; padding: 0.3rem 1rem;
+    font-weight: 700; font-size: 0.85rem; margin-top: 0.75rem;
+  }
+
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.8); backdrop-filter: blur(6px);
+    z-index: 1000; align-items: center; justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--card); border: 1px solid var(--danger);
+    border-radius: 16px; padding: 2.5rem;
+    max-width: 420px; width: 90%; text-align: center;
+    box-shadow: 0 0 60px rgba(239,68,68,0.3);
+    animation: modal-in 0.3s ease;
+  }
+  @keyframes modal-in { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .modal h2 { font-size: 1.5rem; color: var(--danger); margin-bottom: 0.5rem; }
+  .modal p { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+  .modal-actions { display: flex; flex-direction: column; gap: 0.75rem; }
+  .modal-btn-danger {
+    background: var(--danger); color: #fff; border: none;
+    border-radius: 10px; padding: 1rem; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem;
+  }
+  .modal-btn-cancel {
+    background: transparent; color: var(--muted); border: 1px solid var(--border);
+    border-radius: 10px; padding: 0.8rem; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.9rem;
+  }
+  .sos-contacts { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
+  .contact-chip {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.5rem 0.75rem;
+    display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;
+  }
+  .contact-chip .name { font-weight: 600; }
+  .contact-chip .status { color: var(--safe); font-size: 0.7rem; }
+
+  .toast {
+    position: fixed; bottom: 2rem; right: 2rem; z-index: 2000;
+    background: var(--safe); color: #000;
+    border-radius: 10px; padding: 0.9rem 1.5rem;
+    font-weight: 700; font-size: 0.9rem;
+    display: none; align-items: center; gap: 0.75rem;
+    box-shadow: 0 0 30px rgba(16,185,129,0.5);
+  }
+  .toast.show { display: flex; }
+
+  footer {
+    position: relative; z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 2rem;
+    display: flex; justify-content: space-between; align-items: center;
+    max-width: 1400px; margin: 0 auto;
+    color: var(--muted); font-size: 0.8rem;
+  }
+
+  .divider { height: 1px; background: var(--border); max-width: 1400px; margin: 0 auto; }
+  .live-dot {
+    display: inline-block; width: 8px; height: 8px;
+    background: var(--danger); border-radius: 50%;
+    animation: live-blink 1s ease-in-out infinite; margin-right: 4px;
+  }
+  @keyframes live-blink { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+  .fade-up { animation: fade-up 0.6s ease forwards; }
+  .delay-1 { animation-delay: 0.1s; opacity: 0; }
+  .delay-2 { animation-delay: 0.2s; opacity: 0; }
+  .delay-3 { animation-delay: 0.3s; opacity: 0; }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 900px) {
+    .map-interface { grid-template-columns: 1fr; }
+    .map-area { min-height: 400px; }
+    .ai-score-layout { grid-template-columns: 1fr; }
+    nav .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">🛡️ Safe<span>Route</span></div>
+  <div class="nav-links">
+    <a href="#app">Navigate</a>
+    <a href="#features">Features</a>
+    <a href="#ai-score">AI Score</a>
+  </div>
+  <button class="nav-cta" onclick="document.getElementById('app').scrollIntoView({behavior:'smooth'})">Open App</button>
+</nav>
+
+<section class="hero">
+  <div class="hero-badge fade-up">🛰️ AI-Powered Safety Navigation</div>
+  <h1 class="fade-up delay-1">Navigate Smarter.<br><span class="highlight">Arrive Safer.</span></h1>
+  <p class="fade-up delay-2">Every street has a story. SafeRoute AI reads real-time crowd reports, lighting data, and crime patterns to route you through the safest path — not just the fastest.</p>
+  <div class="hero-actions fade-up delay-3">
+    <button class="btn-primary" onclick="document.getElementById('app').scrollIntoView({behavior:'smooth'})">🗺️ Plan My Route</button>
+    <button class="btn-secondary" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">See How It Works</button>
+  </div>
+</section>
+
+<section class="app-section" id="app">
+  <div class="section-label">Live Navigation</div>
+  <div class="section-title">Find Your Safe Route</div>
+  <div class="section-sub">Adjust time, filters, and see real-time AI Safety Scores on every street.</div>
+
+  <div class="map-interface">
+    <div class="sidebar">
+      <div class="card">
+        <div class="card-title">📍 Route Planner</div>
+        <div class="search-group">
+          <div class="input-wrap">
+            <span class="icon">🟢</span>
+            <input type="text" placeholder="Your location..." value="Central Park, NY">
+          </div>
+          <div class="input-wrap">
+            <span class="icon">🔴</span>
+            <input type="text" placeholder="Destination..." value="Times Square, NY">
+          </div>
+          <button class="find-btn" onclick="findRoute()">⚡ Find Safest Route</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🕐 Departure Time</div>
+        <div class="time-control">
+          <div class="time-display">
+            <span class="time-val" id="timeVal">09:00</span>
+            <span class="time-note" id="timeNote">Morning — Safe</span>
+          </div>
+          <input type="range" min="0" max="23" value="9" id="timeSlider" oninput="updateTime()">
+          <div class="time-labels"><span>12 AM</span><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>12 AM</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔍 Safety Filters</div>
+        <div class="filter-grid">
+          <div class="filter-chip active" onclick="toggleFilter(this)">💡 Streetlights</div>
+          <div class="filter-chip active" onclick="toggleFilter(this)">👥 Crowd Reports</div>
+          <div class="filter-chip active" onclick="toggleFilter(this)">🚔 Police Nearby</div>
+          <div class="filter-chip" onclick="toggleFilter(this)">📹 CCTV Zones</div>
+          <div class="filter-chip" onclick="toggleFilter(this)">🏪 Open Businesses</div>
+          <div class="filter-chip" onclick="toggleFilter(this)">🌧️ Weather Risk</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🗺️ Route Options</div>
+        <div class="route-list">
+          <div class="route-item selected" onclick="selectRoute(this, 0)">
+            <div class="route-score score-safe">92<span>/100</span></div>
+            <div class="route-info">
+              <div class="route-name">Via 5th Avenue</div>
+              <div class="route-meta"><span>⏱ 18 min</span><span>📏 1.4 mi</span></div>
+              <div class="route-tags">
+                <span class="route-tag">💡 Well-lit</span>
+                <span class="route-tag">🚔 Police beat</span>
+              </div>
+            </div>
+          </div>
+          <div class="route-item" onclick="selectRoute(this, 1)">
+            <div class="route-score score-warn">67<span>/100</span></div>
+            <div class="route-info">
+              <div class="route-name">Via 8th Avenue</div>
+              <div class="route-meta"><span>⏱ 14 min</span><span>📏 1.1 mi</span></div>
+              <div class="route-tags">
+                <span class="route-tag">⚠️ 2 reports</span>
+                <span class="route-tag">🌑 Dim lighting</span>
+              </div>
+            </div>
+          </div>
+          <div class="route-item" onclick="selectRoute(this, 2)">
+            <div class="route-score score-danger">41<span>/100</span></div>
+            <div class="route-info">
+              <div class="route-name">Via 9th Ave / 42nd St</div>
+              <div class="route-meta"><span>⏱ 12 min</span><span>📏 0.9 mi</span></div>
+              <div class="route-tags">
+                <span class="route-tag">🔴 High risk area</span>
+                <span class="route-tag">👁️ No CCTV</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="map-area">
+      <div class="map-canvas">
+        <svg class="map-svg" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+          <rect width="800" height="600" fill="#0a1628"/>
+          <g stroke="#1a2a40" stroke-width="18" fill="none">
+            <line x1="0" y1="100" x2="800" y2="100"/>
+            <line x1="0" y1="200" x2="800" y2="200"/>
+            <line x1="0" y1="300" x2="800" y2="300"/>
+            <line x1="0" y1="400" x2="800" y2="400"/>
+            <line x1="0" y1="500" x2="800" y2="500"/>
+            <line x1="100" y1="0" x2="100" y2="600"/>
+            <line x1="200" y1="0" x2="200" y2="600"/>
+            <line x1="300" y1="0" x2="300" y2="600"/>
+            <line x1="400" y1="0" x2="400" y2="600"/>
+            <line x1="500" y1="0" x2="500" y2="600"/>
+            <line x1="600" y1="0" x2="600" y2="600"/>
+            <line x1="700" y1="0" x2="700" y2="600"/>
+          </g>
+          <g fill="#0f1e33">
+            <rect x="110" y="110" width="80" height="80" rx="3"/>
+            <rect x="210" y="110" width="80" height="80" rx="3"/>
+            <rect x="310" y="110" width="80" height="80" rx="3"/>
+            <rect x="510" y="110" width="80" height="80" rx="3"/>
+            <rect x="610" y="110" width="80" height="80" rx="3"/>
+            <rect x="110" y="210" width="80" height="80" rx="3"/>
+            <rect x="310" y="210" width="80" height="80" rx="3"/>
+            <rect x="410" y="210" width="80" height="80" rx="3"/>
+            <rect x="510" y="210" width="80" height="80" rx="3"/>
+            <rect x="610" y="210" width="80" height="80" rx="3"/>
+            <rect x="110" y="310" width="80" height="80" rx="3"/>
+            <rect x="210" y="310" width="80" height="80" rx="3"/>
+            <rect x="510" y="310" width="80" height="80" rx="3"/>
+            <rect x="610" y="310" width="80" height="80" rx="3"/>
+            <rect x="710" y="310" width="80" height="80" rx="3"/>
+            <rect x="110" y="410" width="80" height="80" rx="3"/>
+            <rect x="210" y="410" width="80" height="80" rx="3"/>
+            <rect x="310" y="410" width="80" height="80" rx="3"/>
+            <rect x="410" y="410" width="80" height="80" rx="3"/>
+            <rect x="610" y="410" width="80" height="80" rx="3"/>
+            <rect x="710" y="410" width="80" height="80" rx="3"/>
+          </g>
+          <rect x="410" y="310" width="90" height="90" rx="6" fill="#0d2a1a"/>
+          <text x="455" y="362" fill="#10b981" font-size="22" text-anchor="middle">🌳</text>
+          <rect x="305" y="295" width="190" height="110" rx="4" fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.3)" stroke-width="1"/>
+          <polyline points="150,530 150,300 300,300 300,150 400,150 400,80"
+            fill="none" stroke="#10b981" stroke-width="5" stroke-linecap="round"
+            stroke-linejoin="round" opacity="0.9" stroke-dasharray="10 4"/>
+          <polyline points="150,530 450,530 450,300 600,300 600,150 400,80"
+            fill="none" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"
+            stroke-linejoin="round" opacity="0.4"/>
+          <polyline points="150,530 350,530 350,400 350,300 350,150 400,80"
+            fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round"
+            stroke-linejoin="round" opacity="0.3"/>
+          <g fill="#00e5ff" opacity="0.8">
+            <circle cx="150" cy="430" r="4"/>
+            <circle cx="150" cy="350" r="4"/>
+            <circle cx="220" cy="300" r="4"/>
+            <circle cx="300" cy="240" r="4"/>
+            <circle cx="300" cy="170" r="4"/>
+            <circle cx="360" cy="150" r="4"/>
+          </g>
+          <g fill="rgba(0,229,255,0.08)">
+            <circle cx="150" cy="430" r="20"/>
+            <circle cx="150" cy="350" r="20"/>
+            <circle cx="220" cy="300" r="20"/>
+            <circle cx="300" cy="240" r="20"/>
+            <circle cx="300" cy="170" r="20"/>
+            <circle cx="360" cy="150" r="20"/>
+          </g>
+          <rect x="205" y="115" width="80" height="80" rx="4" fill="#0d1e3a" stroke="rgba(0,100,255,0.4)" stroke-width="2"/>
+          <text x="245" y="148" fill="#4488ff" font-size="22" text-anchor="middle">🚔</text>
+          <text x="245" y="168" fill="#4488ff" font-size="9" text-anchor="middle" font-family="monospace">POLICE</text>
+          <text x="245" y="179" fill="#4488ff" font-size="9" text-anchor="middle" font-family="monospace">STATION</text>
+          <text x="395" y="360" font-size="20" text-anchor="middle">⚠️</text>
+          <text x="395" y="378" fill="#ef4444" font-size="9" text-anchor="middle" font-family="monospace">3 REPORTS</text>
+          <circle cx="350" cy="400" r="6" fill="rgba(239,68,68,0.6)"/>
+          <circle cx="370" cy="380" r="5" fill="rgba(239,68,68,0.5)"/>
+          <circle cx="340" cy="360" r="4" fill="rgba(245,158,11,0.6)"/>
+          <circle cx="150" cy="530" r="12" fill="#10b981"/>
+          <text x="150" y="535" font-size="12" text-anchor="middle">📍</text>
+          <circle cx="400" cy="80" r="14" fill="#ef4444"/>
+          <text x="400" y="85" font-size="14" text-anchor="middle">🎯</text>
+          <circle cx="150" cy="480" r="8" fill="#00e5ff">
+            <animate attributeName="r" values="8;11;8" dur="1.5s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="150" cy="480" r="20" fill="rgba(0,229,255,0.12)">
+            <animate attributeName="r" values="12;24;12" dur="1.5s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.4;0;0.4" dur="1.5s" repeatCount="indefinite"/>
+          </circle>
+          <g font-family="monospace" font-size="9">
+            <rect x="110" y="286" width="32" height="14" rx="3" fill="#10b981" opacity="0.9"/>
+            <text x="126" y="297" fill="#000" font-weight="bold" text-anchor="middle">92</text>
+            <rect x="415" y="286" width="32" height="14" rx="3" fill="#ef4444" opacity="0.9"/>
+            <text x="431" y="297" fill="#fff" font-weight="bold" text-anchor="middle">41</text>
+            <rect x="565" y="286" width="32" height="14" rx="3" fill="#f59e0b" opacity="0.9"/>
+            <text x="581" y="297" fill="#000" font-weight="bold" text-anchor="middle">67</text>
+          </g>
+          <g fill="#2a4a6a" font-size="10" font-family="monospace" text-anchor="middle">
+            <text x="400" y="320">— W 42nd St — ⚠️ —</text>
+            <text x="400" y="220">— W 50th St —</text>
+            <text transform="rotate(-90)" x="-300" y="155">5th Ave ✅</text>
+            <text transform="rotate(-90)" x="-300" y="455">9th Ave 🔴</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="map-overlay-top">
+        <div class="map-badge"><span class="live-dot"></span> LIVE · AI Safety Map</div>
+        <div class="map-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div> Safe Route (92)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div> Moderate (67)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div> Risky Route (41)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#00e5ff"></div> Streetlights</div>
+        </div>
+      </div>
+
+      <div class="map-overlay-bottom">
+        <div class="street-tooltip">
+          <div class="st-name">📍 5th Avenue — Selected Route</div>
+          <div class="st-row"><span>AI Safety Score</span><span class="st-val" style="color:#10b981">92/100</span></div>
+          <div class="st-row"><span>Lighting Level</span><span class="st-val" style="color:#00e5ff">94%</span></div>
+          <div class="st-row"><span>Crowd Reports</span><span class="st-val">None nearby</span></div>
+          <div class="st-row"><span>Police Station</span><span class="st-val" style="color:#4488ff">0.3 mi</span></div>
+        </div>
+        <button class="emergency-btn" onclick="openSOS()">
+          <span class="sos-icon">🆘</span> Emergency Alert
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="features-section" id="features">
+  <div class="section-label">How It Works</div>
+  <div class="section-title">Every Feature Built for Your Safety</div>
+  <div class="section-sub">Five intelligent layers combine to give you the safest possible route.</div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon fi-blue">🤖</div>
+      <h3>AI Safety Score</h3>
+      <p>Every street gets a 0–100 safety score updated in real-time using machine learning trained on crime data, lighting maps, and thousands of user reports.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon fi-purple">👥</div>
+      <h3>Crowd-Reported Zones</h3>
+      <p>Community members flag unsafe zones, suspicious activity, or hazards. Reports expire automatically and are weighted by credibility score.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon fi-yellow">💡</div>
+      <h3>Streetlight Mapping</h3>
+      <p>Real municipal streetlight availability data overlaid on every route. Routes through well-lit corridors are prioritized, especially after dark.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon fi-green">⏱</div>
+      <h3>Time-Based Scoring</h3>
+      <p>Safety profiles change by hour. A route safe at noon may score very differently at midnight. AI learns time-of-day patterns from historical data.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon fi-blue">🚔</div>
+      <h3>Police Station Proximity</h3>
+      <p>Routes are weighted toward paths near police stations, fire departments, and hospitals — giving you safer fallback options at every step.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon fi-red">🆘</div>
+      <h3>One-Tap Emergency Alert</h3>
+      <p>Tap once to send your live GPS location to your emergency contacts AND local police. Includes your route, last known position, and timestamp.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="ai-score-section" id="ai-score">
+  <div class="section-label">AI Engine</div>
+  <div class="section-title">How the Safety Score Works</div>
+  <div class="section-sub">A weighted composite score trained on real-world data.</div>
+  <div class="ai-score-layout">
+    <div class="score-visual">
+      <div style="margin-bottom:0.5rem;font-size:0.85rem;color:var(--muted);">Score breakdown for: <strong style="color:var(--text)">5th Avenue, New York</strong></div>
+      <div class="score-bar-row"><div class="score-bar-label">💡 Lighting Availability</div><div class="score-bar-track"><div class="score-bar-fill" style="width:94%"></div></div><div class="score-bar-val">94</div></div>
+      <div class="score-bar-row"><div class="score-bar-label">👥 Crowd Activity</div><div class="score-bar-track"><div class="score-bar-fill" style="width:88%"></div></div><div class="score-bar-val">88</div></div>
+      <div class="score-bar-row"><div class="score-bar-label">🚔 Police Proximity</div><div class="score-bar-track"><div class="score-bar-fill" style="width:96%"></div></div><div class="score-bar-val">96</div></div>
+      <div class="score-bar-row"><div class="score-bar-label">⏱ Time of Day</div><div class="score-bar-track"><div class="score-bar-fill" style="width:90%"></div></div><div class="score-bar-val">90</div></div>
+      <div class="score-bar-row"><div class="score-bar-label">📊 Historical Incidents</div><div class="score-bar-track"><div class="score-bar-fill" style="width:85%"></div></div><div class="score-bar-val">85</div></div>
+      <div class="score-bar-row"><div class="score-bar-label">📱 Community Reports</div><div class="score-bar-track"><div class="score-bar-fill" style="width:97%"></div></div><div class="score-bar-val">97</div></div>
+      <div class="score-bar-row"><div class="score-bar-label">📹 Surveillance Density</div><div class="score-bar-track"><div class="score-bar-fill" style="width:78%"></div></div><div class="score-bar-val">78</div></div>
+      <div style="margin-top:1rem;padding:1rem;background:var(--card);border:1px solid var(--border);border-radius:10px;font-size:0.8rem;color:var(--muted);line-height:1.6;">
+        🧠 <strong style="color:var(--text)">Model:</strong> Gradient-boosted classifier trained on 14M+ data points. Updated every 15 minutes. Accuracy: 94.2% vs historical incidents.
+      </div>
+    </div>
+    <div class="overall-score-display">
+      <div style="font-size:0.75rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:1rem;">AI Safety Score</div>
+      <div class="big-score" id="animScore">92</div>
+      <div class="big-score-label">/ 100</div>
+      <div class="score-grade">✅ VERY SAFE</div>
+      <div style="margin-top:1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;text-align:left;">
+        <div style="background:var(--surface);border-radius:8px;padding:0.75rem;"><div style="font-size:0.7rem;color:var(--muted);">Last Updated</div><div style="font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--accent);">2 min ago</div></div>
+        <div style="background:var(--surface);border-radius:8px;padding:0.75rem;"><div style="font-size:0.7rem;color:var(--muted);">Confidence</div><div style="font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--safe);">97.4%</div></div>
+        <div style="background:var(--surface);border-radius:8px;padding:0.75rem;"><div style="font-size:0.7rem;color:var(--muted);">Data Points</div><div style="font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--text);">2,847</div></div>
+        <div style="background:var(--surface);border-radius:8px;padding:0.75rem;"><div style="font-size:0.7rem;color:var(--muted);">Community</div><div style="font-family:'Space Mono',monospace;font-size:0.85rem;color:var(--safe);">0 alerts</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>🛡️ <strong>SafeRoute AI</strong> — Navigate with Confidence</div>
+  <div style="font-size:0.75rem;">Prototype Demo · <span class="live-dot"></span> Live Data Engine Active</div>
+</footer>
+
+<div class="modal-overlay" id="sosModal">
+  <div class="modal">
+    <div style="font-size:3rem;margin-bottom:0.5rem;">🆘</div>
+    <h2>Emergency Alert</h2>
+    <p>Your live location will be immediately shared with your emergency contacts and local authorities.</p>
+    <div class="sos-contacts">
+      <div class="contact-chip"><span class="name">👤 Mom (Sarah)</span><span class="status">● Will receive alert</span></div>
+      <div class="contact-chip"><span class="name">👤 John (Partner)</span><span class="status">● Will receive alert</span></div>
+      <div class="contact-chip"><span class="name">🚔 Local Police (911)</span><span class="status">● Auto-dispatch enabled</span></div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn-danger" onclick="sendSOS()">🆘 SEND EMERGENCY ALERT NOW</button>
+      <button class="modal-btn-cancel" onclick="closeSOS()">Cancel — I'm Safe</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✅ Emergency alert sent! Help is on the way.</div>
+
+<script>
+  function updateTime() {
+    const val = parseInt(document.getElementById('timeSlider').value);
+    document.getElementById('timeVal').textContent = val.toString().padStart(2,'0') + ':00';
+    const note = document.getElementById('timeNote');
+    if (val >= 6 && val < 12) { note.textContent = 'Morning — Safe'; note.style.color = '#10b981'; }
+    else if (val >= 12 && val < 17) { note.textContent = 'Afternoon — Safe'; note.style.color = '#10b981'; }
+    else if (val >= 17 && val < 20) { note.textContent = 'Evening — Moderate'; note.style.color = '#f59e0b'; }
+    else { note.textContent = 'Night — Exercise caution'; note.style.color = '#ef4444'; }
+    const score = document.getElementById('animScore');
+    if (val >= 22 || val < 5) { score.textContent = '71'; score.style.color = '#f59e0b'; }
+    else { score.textContent = '92'; score.style.color = '#10b981'; }
+  }
+
+  function toggleFilter(el) { el.classList.toggle('active'); }
+
+  const routeData = [
+    { score: 92, color: '#10b981' },
+    { score: 67, color: '#f59e0b' },
+    { score: 41, color: '#ef4444' }
+  ];
+
+  function selectRoute(el, idx) {
+    document.querySelectorAll('.route-item').forEach(r => r.classList.remove('selected'));
+    el.classList.add('selected');
+    const s = document.getElementById('animScore');
+    s.textContent = routeData[idx].score;
+    s.style.color = routeData[idx].color;
+  }
+
+  function findRoute() {
+    const btn = document.querySelector('.find-btn');
+    btn.textContent = '🔄 Analyzing routes...';
+    setTimeout(() => {
+      btn.textContent = '✅ Route found!';
+      setTimeout(() => { btn.textContent = '⚡ Find Safest Route'; }, 2000);
+    }, 1200);
+  }
+
+  function openSOS() { document.getElementById('sosModal').classList.add('show'); }
+  function closeSOS() { document.getElementById('sosModal').classList.remove('show'); }
+  function sendSOS() {
+    closeSOS();
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 4000);
+  }
+</script>
+</body>
+</html>
